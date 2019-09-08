@@ -3,6 +3,7 @@ import ApplicationManager from "../classes/ApplicationManager.js";
 import Block from "../classes/Block.js";
 import Player from "../classes/Player.js";
 import Helpers from "../classes/Helpers.js";
+import ResourcesManager from "../classes/ResourcesManager.js";
 
 export default {
 
@@ -14,12 +15,17 @@ export default {
     keyE: null,
     blocks: [],
     player: null,
+    beetlejuiceSound: null,
+    sceneWidth: null,
 
     setup(params) {
         this.scene = params.scene;
     },
 
     beforeEnter(params) {
+        // sound
+        this.beetlejuiceSound = ResourcesManager.getInstance().getSound("beetlejuice");
+        this.beetlejuiceSound.play();
         // remove all children
         this.scene.removeChildren();
         // add player
@@ -57,16 +63,31 @@ export default {
         };
         this.keyE = KeyboardManager.getInstance().getKey("e");
         this.keyE.press = () => {
-            ApplicationManager.getInstance().setState("edit");
+            ApplicationManager.getInstance().setState("edit", {
+                player: { x: this.player.getInstance().position.x, y: this.player.getInstance().position.y }
+            });
         };
+        // save scene width
+        this.sceneWidth = this.scene.width;
     },
 
     tick() {
         // move player
         this.player.move();
+        // move scene
+        let playerPivot = Math.round(this.player.getInstance().position.x - (ApplicationManager.STAGE_W / 2));
+        const minPivot = 0;
+        const maxPivot = this.sceneWidth - ApplicationManager.STAGE_W;
+        if (playerPivot <= minPivot) {
+            playerPivot = minPivot;
+        }
+        if (playerPivot >= maxPivot) {
+            playerPivot = maxPivot;
+        }
+        this.scene.pivot.x = playerPivot;
         // check player inside stage
         let collision = null;
-        collision = Helpers.bump.contain(this.player.getInstance(), { x: 0, y: 0, width: ApplicationManager.STAGE_W, height: ApplicationManager.STAGE_H });
+        collision = Helpers.bump.contain(this.player.getInstance(), { x: 0, y: 0, width: this.sceneWidth, height: ApplicationManager.STAGE_H });
         if (collision) {
             if (collision.has("left")) {
                 console.log("The sprite hit the left");
@@ -80,7 +101,7 @@ export default {
             if (collision.has("bottom")) {
                 console.log("The sprite hit the bottom");
             }
-        }
+        } 
         // check block collision
         this.blocks.forEach((block, index) => {
             // check block collision with player
@@ -89,6 +110,8 @@ export default {
     },
 
     beforeLeave() {
+        // sound
+        this.beetlejuiceSound.stop();
         // keyboard
         this.keyLeft.unsubscribe();
         this.keyRight.unsubscribe();

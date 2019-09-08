@@ -3,6 +3,7 @@ class Sprite {
     constructor(container, textures) {
         this._container = container;
         this._textures = textures;
+        this._draggable = false;
         this._sprite = this._getNewInstance();
         this._sprite.vx = 0;
         this._sprite.vy = 0;
@@ -54,6 +55,10 @@ class Sprite {
         }
     }
 
+    setDraggable(b) {
+        this._draggable = b;
+    }
+
     setInteractive(b) {
         this._sprite.interactive = b;
     }
@@ -72,12 +77,14 @@ class Sprite {
     }
 
     _onDragStart(event) {
-        // store a reference to the data
-        // the reason for this is because of multitouch
-        // we want to track the movement of this particular touch
-        this._sprite.data = event.data;
-        this._sprite.alpha = 0.5;
-        this._sprite.dragging = true;
+        if (this._draggable) {
+            // store a reference to the data
+            // the reason for this is because of multitouch
+            // we want to track the movement of this particular touch
+            this._sprite.data = event.data;
+            this._sprite.alpha = 0.5;
+            this._sprite.dragging = true;
+        }
     }
 
     _onDragEnd() {

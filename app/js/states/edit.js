@@ -17,30 +17,34 @@ export default {
     keyP: null,
     blocks: [],
     trash: null,
+    addBlock: null,
 
     setup(params) {
         this.scene = params.scene;
         // player
         this.player = new Player(this.scene);
         this.player.setInteractive(true);
-        this.player.setPosition(620, 100);
+        this.player.setDraggable(true);
+        this.player.setPosition(100, 100);
         // add block
-        const addBlock = new Block(this.scene);
-        addBlock.setPosition(20, 20);
-        addBlock.setSize(30, 30);
-        addBlock.setInteractive(true);
-        addBlock.getInstance().on("click", (event) => {
+        this.addBlock = new Block(this.scene);
+        this.addBlock.setPosition(20, 20);
+        this.addBlock.setSize(30, 30);
+        this.addBlock.setInteractive(true);
+        this.addBlock.getInstance().on("click", (event) => {
             const block = new Block(this.scene);
             this.blocks.push(block);
             block.setInteractive(true);
-            block.setPosition(55, 90);
+            block.setDraggable(true);
+            block.setPosition(this.scene.pivot.x + 55, 90);
             block.setSize(100, 100);
         });
         // blocks
-        for (let i = 0; i < 13; i++) {
+        for (let i = 0; i < 20; i++) {
             const block = new Block(this.scene);
             this.blocks.push(block);
             block.setInteractive(true);
+            block.setDraggable(true);
             block.setPosition((i * 100) + 50, 530);
             block.setSize(100, 100);
         }
@@ -51,6 +55,10 @@ export default {
     },
 
     beforeEnter(params) {
+        // player
+        if (params) {
+            this.player.setPosition(params.player.x, params.player.y);
+        }
         // keyboard
         this.keyLeft = KeyboardManager.getInstance().getKey("ArrowLeft");
         this.keyLeft.press = () => {
@@ -115,9 +123,15 @@ export default {
     tick() {
         // move player
         this.player.move();
+        // move scene
+        const playerPivot = Math.max(0, Math.round(this.player.getInstance().position.x - (ApplicationManager.STAGE_W / 2)));
+        this.scene.pivot.x = playerPivot;
+        // move tools
+        this.trash.getInstance().x = ApplicationManager.STAGE_W + playerPivot - 20;
+        this.addBlock.getInstance().x = playerPivot + 20;
         // check player inside stage
         let collision = null;
-        collision = Helpers.bump.contain(this.player.getInstance(), { x: 0, y: 0, width: ApplicationManager.STAGE_W, height: ApplicationManager.STAGE_H });
+        collision = Helpers.bump.contain(this.player.getInstance(), { x: 0, y: 0, width: this.scene.width, height: this.scene.height });
         if (collision) {
             if (collision.has("left")) {
                 console.log("The sprite hit the left");

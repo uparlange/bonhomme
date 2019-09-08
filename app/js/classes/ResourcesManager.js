@@ -10,6 +10,9 @@ class ResourcesManager {
     constructor() {
         this.events = new PIXI.utils.EventEmitter();
         this._resources = [];
+        this._sounds = [
+            { name: "beetlejuice", url: "resources/snds/beetlejuice.mp3" }
+        ];
         this._textures = [
             "resources/svgs/BlockFichier 1.svg",
             "resources/svgs/TrashFichier 1.svg"
@@ -61,7 +64,11 @@ class ResourcesManager {
         return this._resources[name].texture;
     }
 
-    getTexturesArray(animation) {
+    getSound(name) {
+        return this._resources[name].sound;
+    }
+
+    getAnimationTextures(animation) {
         const textures = [];
         for (let i = animation.start; i <= animation.stop; i++) {
             textures.push(this._resources[animation.urlPattern.replace("{0}", i)].texture);
@@ -71,6 +78,9 @@ class ResourcesManager {
 
     load() {
         const promise = new Promise((resolve, reject) => {
+            this._sounds.forEach((resource) => {
+                PIXI.Loader.shared.add(resource.name, resource.url);
+            });
             this._textures.forEach((resource) => {
                 PIXI.Loader.shared.add(resource);
             });

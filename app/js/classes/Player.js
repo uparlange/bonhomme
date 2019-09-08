@@ -5,7 +5,7 @@ class Player extends AnimatedSprite {
 
     static getDefaultTextures() {
         const animation = ResourcesManager.getInstance().getAnimation("QuandJeFaisRien");
-        return ResourcesManager.getInstance().getTexturesArray(animation);
+        return ResourcesManager.getInstance().getAnimationTextures(animation);
     }
 
     constructor(container) {
@@ -37,7 +37,7 @@ class Player extends AnimatedSprite {
                     break;
                 case "QuandJeFaisRien":
                     this._noActionAnimationCount++;
-                    if (this._noActionAnimationCount == 5) {
+                    if (this._noActionAnimationCount >= 5) {
                         this.setAngry();
                     } else {
                         this._currentAnimation = null;
