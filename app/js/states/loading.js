@@ -3,14 +3,12 @@ import ApplicationManager from "../classes/ApplicationManager.js";
 
 export default {
 
-    scene: null,
     loadingText: null,
 
-    setup(params) {
-        this.scene = params.scene;
+    setup() {
         this.loadingText = new PIXI.Text("Loading 0%");
         this.loadingText.position.set(10, 10);
-        this.scene.addChild(this.loadingText);
+        this._scene.addChild(this.loadingText);
     },
 
     beforeEnter(params) {

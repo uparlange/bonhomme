@@ -1,47 +1,43 @@
-import KeyboardManager from "../classes/KeyboardManager.js";
 import Player from "../classes/Player.js";
 import Block from "../classes/Block.js";
 import Trash from "../classes/Trash.js";
 import Helpers from "../classes/Helpers.js";
 import ApplicationManager from "../classes/ApplicationManager.js";
 import GamepadManager from "../classes/GamepadManager.js";
+import Background from "../classes/Background.js";
 
 export default {
 
-    scene: null,
     player: null,
-    keyLeft: null,
-    keyRight: null,
-    keyUp: null,
-    keyS: null,
-    keyP: null,
     blocks: [],
     trash: null,
     addBlock: null,
+    background: null,
 
-    setup(params) {
-        this.scene = params.scene;
+    setup() {
+        // background
+        this.background = new Background(this._scene);
         // player
-        this.player = new Player(this.scene);
+        this.player = new Player(this._scene);
         this.player.setInteractive(true);
         this.player.setDraggable(true);
         this.player.setPosition(100, 100);
         // add block
-        this.addBlock = new Block(this.scene);
+        this.addBlock = new Block(this._scene);
         this.addBlock.setPosition(20, 20);
         this.addBlock.setSize(30, 30);
         this.addBlock.setInteractive(true);
         this.addBlock.getInstance().on("click", (event) => {
-            const block = new Block(this.scene);
+            const block = new Block(this._scene);
             this.blocks.push(block);
             block.setInteractive(true);
             block.setDraggable(true);
-            block.setPosition(this.scene.pivot.x + 55, 90);
+            block.setPosition(this._scene.pivot.x + 55, 90);
             block.setSize(100, 100);
         });
         // blocks
         for (let i = 0; i < 20; i++) {
-            const block = new Block(this.scene);
+            const block = new Block(this._scene);
             this.blocks.push(block);
             block.setInteractive(true);
             block.setDraggable(true);
@@ -49,7 +45,7 @@ export default {
             block.setSize(100, 100);
         }
         // trash
-        this.trash = new Trash(this.scene);
+        this.trash = new Trash(this._scene);
         this.trash.setPosition(1184, 20);
         this.trash.setSize(30, 30);
     },
@@ -59,94 +55,86 @@ export default {
         if (params) {
             this.player.setPosition(params.player.x, params.player.y);
         }
-        // keyboard
-        this.keyLeft = KeyboardManager.getInstance().getKey("ArrowLeft");
-        this.keyLeft.press = () => {
-            this.player.moveLeft();
-        };
-        this.keyLeft.release = () => {
-            this.player.stopMoving();
-        };
-        this.keyRight = KeyboardManager.getInstance().getKey("ArrowRight");
-        this.keyRight.press = () => {
-            this.player.moveRight();
-        };
-        this.keyRight.release = () => {
-            this.player.stopMoving();
-        };
-        this.keyUp = KeyboardManager.getInstance().getKey("ArrowUp");
-        this.keyUp.release = () => {
-            this.player.jump();
-        };
-        this.keyS = KeyboardManager.getInstance().getKey("s");
-        this.keyS.press = () => {
-            this.player.stopMoving();
-        };
-        this.keyP = KeyboardManager.getInstance().getKey("p");
-        this.keyP.press = () => {
-            const params = {
-                blocks: [],
-                player: { x: this.player.getInstance().position.x, y: this.player.getInstance().position.y }
-            };
-            this.blocks.forEach((block, index) => {
-                const blocInstance = block.getInstance();
-                params.blocks.push({ x: blocInstance.position.x, y: blocInstance.position.y, width: blocInstance.width, height: blocInstance.height });
-            });
-            ApplicationManager.getInstance().setState("play", params);
-        };
-        // gamepad
-        this._gamepadButtonPressed = (event) => {
-            switch (event.index) {
-                case 0:
-                    this.player.jump();
-                    break;
-                case 14:
-                    this.player.moveLeft();
-                    break;
-                case 15:
-                    this.player.moveRight();
-                    break;
-            }
-        };
-        GamepadManager.getInstance().events.on("buttonPressed", this._gamepadButtonPressed);
-        this._gamepadButtonReleased = (event) => {
-            switch (event.index) {
-                case 14:
-                case 15:
-                    this.player.stopMoving();
-                    break;
-            }
-        };
-        GamepadManager.getInstance().events.on("buttonReleased", this._gamepadButtonReleased);
+    },
+
+    keyPressed(event) {
+        switch (event.key) {
+            case "ArrowLeft":
+                this.player.moveLeft();
+                this.background.moveLeft();
+                break;
+            case "ArrowRight":
+                this.player.moveRight();
+                this.background.moveRight();
+                break;
+        }
+    },
+
+    keyReleased(event) {
+        switch (event.key) {
+            case "ArrowLeft":
+                this.player.stopMoving();
+                this.background.stopMoving();
+                break;
+            case "ArrowRight":
+                this.player.stopMoving();
+                this.background.stopMoving();
+                break;
+            case "ArrowUp":
+                this.player.jump();
+                break;
+            case "p":
+                const params = {
+                    blocks: [],
+                    player: { x: this.player.getInstance().position.x, y: this.player.getInstance().position.y }
+                };
+                this.blocks.forEach((block, index) => {
+                    const blocInstance = block.getInstance();
+                    params.blocks.push({ x: blocInstance.position.x, y: blocInstance.position.y, width: blocInstance.width, height: blocInstance.height });
+                });
+                ApplicationManager.getInstance().setState("play", params);
+                break;
+        }
+    },
+
+    buttonPressed(event) {
+        switch (event.index) {
+            case 0:
+                this.player.jump();
+                break;
+            case 14:
+                this.player.moveLeft();
+                this.background.moveLeft();
+                break;
+            case 15:
+                this.player.moveRight();
+                this.background.moveRight();
+                break;
+        }
+    },
+
+    buttonReleased(event) {
+        switch (event.index) {
+            case 14:
+            case 15:
+                this.player.stopMoving();
+                this.background.stopMoving();
+                break;
+        }
     },
 
     tick() {
-        // move player
-        this.player.move();
-        // move scene
         const playerPivot = Math.max(0, Math.round(this.player.getInstance().position.x - (ApplicationManager.STAGE_W / 2)));
-        this.scene.pivot.x = playerPivot;
+        // move scene
+        this._scene.pivot.x = playerPivot;
         // move tools
         this.trash.getInstance().x = ApplicationManager.STAGE_W + playerPivot - 20;
         this.addBlock.getInstance().x = playerPivot + 20;
+        // move player
+        this.player.move();
         // check player inside stage
-        let collision = null;
-        collision = Helpers.bump.contain(this.player.getInstance(), { x: 0, y: 0, width: this.scene.width, height: this.scene.height });
-        if (collision) {
-            if (collision.has("left")) {
-                console.log("The sprite hit the left");
-            }
-            if (collision.has("top")) {
-                console.log("The sprite hit the top");
-            }
-            if (collision.has("right")) {
-                console.log("The sprite hit the right");
-            }
-            if (collision.has("bottom")) {
-                console.log("The sprite hit the bottom");
-            }
-        }
-        // check block collision
+        Helpers.bump.contain(this.player.getInstance(), { x: 0, y: 0, width: this._scene.width, height: this._scene.height });
+        // check blocks collision
         this.blocks.forEach((block, index) => {
             // check block collision with player
             Helpers.bump.hit(this.player.getInstance(), block.getInstance(), true);
@@ -158,17 +146,18 @@ export default {
                 block.remove();
             }
         });
+        // background
+        this.background.getInstance().x = playerPivot;
+        if (playerPivot > 0) {
+            if (this.player.hasMoved()) {
+                this.background.move();
+            } else {
+                this.background.stopMoving();
+            }
+        }
     },
 
     beforeLeave() {
-        // keyboard
-        this.keyLeft.unsubscribe();
-        this.keyRight.unsubscribe();
-        this.keyUp.unsubscribe();
-        this.keyS.unsubscribe();
-        this.keyP.unsubscribe();
-        // gamepad
-        GamepadManager.getInstance().events.off("buttonPressed", this._gamepadButtonPressed);
-        GamepadManager.getInstance().events.off("buttonReleased", this._gamepadButtonReleased);
+
     }
 };

@@ -1,4 +1,6 @@
-class ResourcesManager {
+import BaseClass from "./BaseClass.js";
+
+class ResourcesManager extends BaseClass {
 
     static getInstance() {
         if (ResourcesManager.instance == null) {
@@ -8,6 +10,7 @@ class ResourcesManager {
     }
 
     constructor() {
+        super();
         this.events = new PIXI.utils.EventEmitter();
         this._resources = [];
         this._sounds = [
@@ -15,7 +18,8 @@ class ResourcesManager {
         ];
         this._textures = [
             "resources/svgs/BlockFichier 1.svg",
-            "resources/svgs/TrashFichier 1.svg"
+            "resources/svgs/TrashFichier 1.svg",
+            "resources/imgs/platformer_background_4.png"
         ];
         this._animations = [
             {
@@ -97,8 +101,8 @@ class ResourcesManager {
                     resourceUrl: resource.url,
                     progress: loader.progress
                 });
-                console.log("loading: " + resource.url);
-                console.log("progress: " + loader.progress + "%");
+                this.getLogger().info("loading : " + resource.url);
+                this.getLogger().info("progress : " + loader.progress + "%");
             });
         });
         return promise;

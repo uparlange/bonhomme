@@ -14,6 +14,7 @@ class Player extends AnimatedSprite {
         this.VY_GAP = 5;
         this._noActionAnimationCount = 0;
         this._sprite.vy = this.VY_GAP;
+        this._sprite.anchor.set(0.5);
         this._sprite.onFrameChange = (event) => {
             const currentAnimation = this._currentAnimation;
             switch (currentAnimation) {
@@ -33,7 +34,12 @@ class Player extends AnimatedSprite {
                     this.stopMoving();
                     break;
                 case "Sauter":
-                    this.stopMoving();
+                    this._currentAnimation = null;
+                    if(this._sprite.vx > 0) {
+                        this.moveRight();
+                    } else if(this._sprite.vx < 0) {
+                        this.moveLeft();
+                    }
                     break;
                 case "QuandJeFaisRien":
                     this._noActionAnimationCount++;
@@ -54,12 +60,12 @@ class Player extends AnimatedSprite {
     }
 
     setAngry() {
-        console.log("setAngry");
+        this.getLogger().debug("setAngry");
         this.setAnimation("Enerve");
     }
 
     stopMoving() {
-        console.log("stopMoving");
+        this.getLogger().debug("stopMoving");
         this.setAnimation("QuandJeFaisRien");
         this._sprite.vx = 0;
         this._sprite.vy = this.VY_GAP;
@@ -67,7 +73,7 @@ class Player extends AnimatedSprite {
 
     moveRight() {
         if (this._currentAnimation != "Sauter") {
-            console.log("moveRight");
+            this.getLogger().debug("moveRight");
             this.setAnimation("Marcher");
             this._sprite.scale.x = 1;
             this._sprite.vx = this.VX_GAP;
@@ -76,7 +82,7 @@ class Player extends AnimatedSprite {
 
     moveLeft() {
         if (this._currentAnimation != "Sauter") {
-            console.log("moveLeft");
+            this.getLogger().debug("moveLeft");
             this.setAnimation("Marcher");
             this._sprite.scale.x = -1;
             this._sprite.vx = -1 * this.VX_GAP;
@@ -84,13 +90,13 @@ class Player extends AnimatedSprite {
     }
 
     fall() {
-        console.log("fall");
+        this.getLogger().debug("fall");
         this._sprite.vy = this.VY_GAP;
     }
 
     jump() {
         if (this._currentAnimation != "Sauter") {
-            console.log("jump");
+            this.getLogger().debug("jump");
             this.setAnimation("Sauter");
             this._sprite.vy = -1 * this.VY_GAP;
         }

@@ -1,4 +1,6 @@
-class KeyboardManager {
+import BaseClass from "./BaseClass.js";
+
+class KeyboardManager extends BaseClass {
 
     static getInstance() {
         if (KeyboardManager.instance == null) {
@@ -8,50 +10,33 @@ class KeyboardManager {
     }
 
     constructor() {
-
-    }
-
-    getKey(value) {
-        let key = {};
-        key.value = value;
-        key.isDown = false;
-        key.isUp = true;
-        key.press = undefined;
-        key.release = undefined;
-        //The `downHandler`
-        key.downHandler = event => {
-            if (event.key === key.value) {
-                if (key.isUp && key.press) key.press();
-                key.isDown = true;
-                key.isUp = false;
-                event.preventDefault();
+        super();
+        this._keyboard = {};
+        this.events = new PIXI.utils.EventEmitter();
+        window.addEventListener("keydown", (event) => {
+            let key = this._keyboard[event.keyCode];
+            if (!key) {
+                key = { isUp: true, isDown: false };
+                this._keyboard[event.keyCode] = key;
             }
-        };
-        //The `upHandler`
-        key.upHandler = event => {
-            if (event.key === key.value) {
-                if (key.isDown && key.release) key.release();
+            if (key.isUp) {
+                this.events.emit("keyPressed", event);
+            }
+            key.isDown = true;
+            key.isUp = false;
+        });
+        window.addEventListener("keyup", (event) => {
+            let key = this._keyboard[event.keyCode];
+            if (key) {
+                if (key.isDown) {
+                    this.events.emit("keyReleased", event);
+                }
                 key.isDown = false;
                 key.isUp = true;
-                event.preventDefault();
             }
-        };
-        //Attach event listeners
-        const downListener = key.downHandler.bind(key);
-        const upListener = key.upHandler.bind(key);
-        window.addEventListener(
-            "keydown", downListener, false
-        );
-        window.addEventListener(
-            "keyup", upListener, false
-        );
-        // Detach event listeners
-        key.unsubscribe = () => {
-            window.removeEventListener("keydown", downListener);
-            window.removeEventListener("keyup", upListener);
-        };
-        return key;
+        });
     }
+
 }
 
 export default KeyboardManager;

@@ -1,9 +1,11 @@
 import GamepadManager from "./GamepadManager.js";
+import KeyboardManager from "./KeyboardManager.js";
+import BaseClass from "./BaseClass.js";
 
-class ApplicationManager {
+class ApplicationManager extends BaseClass {
 
-    static STAGE_W = 1200;
-    static STAGE_H = 580;
+    static STAGE_W = 800;
+    static STAGE_H = 600;
 
     static getInstance() {
         if (ApplicationManager.instance == null) {
@@ -12,7 +14,8 @@ class ApplicationManager {
         return ApplicationManager.instance;
     }
 
-    constructor() {
+    constructor () {
+        super();
         this._app = null;
         this._currentState = null;
         this._states = {};
@@ -26,6 +29,18 @@ class ApplicationManager {
                 this._gameLoop(delta);
             });
             this.setState("loading");
+            KeyboardManager.getInstance().events.on("keyPressed", (event) => {
+                this._executeStateInstanceMethod("keyPressed", event);
+            });
+            KeyboardManager.getInstance().events.on("keyReleased", (event) => {
+                this._executeStateInstanceMethod("keyReleased", event);
+            });
+            GamepadManager.getInstance().events.on("buttonPressed", (event) => {
+                this._executeStateInstanceMethod("buttonPressed", event);
+            });
+            GamepadManager.getInstance().events.on("buttonReleased", (event) => {
+                this._executeStateInstanceMethod("buttonReleased", event);
+            });
         }
     }
 
@@ -35,13 +50,11 @@ class ApplicationManager {
                 const scene = new PIXI.Container();
                 this._app.stage.addChild(scene);
                 this._states[stateName] = {
+                    _initialized: false,
                     name: stateName,
                     instance: module.default,
                     scene: scene
                 }
-                module.default.setup({
-                    scene: scene
-                });
                 this._setState(this._states[stateName], params);
             });
         } else {
@@ -52,20 +65,31 @@ class ApplicationManager {
     _gameLoop(delta) {
         const speed = 5 * delta;
         GamepadManager.getInstance().tick();
-        if (this._currentState != null) {
-            this._currentState.instance.tick(delta);
-        }
+        this._executeStateInstanceMethod("tick", delta);
     }
 
-    _setState(state, params) {
+    _setState(nextState, params) {
         if (this._currentState != null) {
-            this._currentState.instance.beforeLeave();
+            this._executeStateInstanceMethod("beforeLeave");
             this._app.stage.removeChild(this._currentState.scene);
         }
-        console.log("setState '" + state.name + "'");
-        this._currentState = state;
-        this._app.stage.addChild(this._currentState.scene);
-        this._currentState.instance.beforeEnter(params);
+        this.getLogger().info("state : " + nextState.name);
+        this._currentState = nextState;
+        this._app.stage.addChild(nextState.scene);
+        if (!nextState._initialized) {
+            nextState.instance._scene = nextState.scene;
+            this._executeStateInstanceMethod("setup");
+            nextState._initialized = true;
+        }
+        this._executeStateInstanceMethod("beforeEnter", params);
+    }
+
+    _executeStateInstanceMethod(methodName, params) {
+        if (this._currentState != null &&
+            this._currentState.instance != null &&
+            typeof (this._currentState.instance[methodName]) === "function") {
+            this._currentState.instance[methodName](params);
+        }
     }
 }
 

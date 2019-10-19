@@ -1,13 +1,16 @@
-class Sprite {
+import BaseClass from "./BaseClass.js";
+
+class Sprite extends BaseClass {
 
     constructor(container, textures) {
+        super();
         this._container = container;
         this._textures = textures;
         this._draggable = false;
         this._sprite = this._getNewInstance();
         this._sprite.vx = 0;
         this._sprite.vy = 0;
-        this._sprite.anchor.set(0.5);
+        this._oldX = null;
         // events for drag start
         this._sprite.on("mousedown", (event) => {
             this._onDragStart(event);
@@ -46,6 +49,14 @@ class Sprite {
         this._container.removeChild(this._sprite);
     }
 
+    setVX(value) {
+        this._sprite.vx = value;
+    }
+
+    setVY(value) {
+        this._sprite.vy = value;
+    }
+
     setSize(w, h) {
         if (w) {
             this._sprite.width = w;
@@ -68,8 +79,13 @@ class Sprite {
     }
 
     move() {
+        this._oldX = this._sprite.x;
         this._sprite.x += this._sprite.vx;
         this._sprite.y += this._sprite.vy;
+    }
+
+    hasMoved() {
+        return (this._oldX != this._sprite.x);
     }
 
     getInstance() {

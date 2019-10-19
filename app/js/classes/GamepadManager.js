@@ -1,4 +1,6 @@
-class GamepadManager {
+import BaseClass from "./BaseClass.js";
+
+class GamepadManager extends BaseClass {
 
     static getInstance() {
         if (GamepadManager.instance == null) {
@@ -8,17 +10,18 @@ class GamepadManager {
     }
 
     constructor() {
+        super();
         this._gamepadIndex = -1;
         this._buttonStates = {};
         this.events = new PIXI.utils.EventEmitter();
         window.addEventListener("gamepadconnected", (e) => {
             const gp = navigator.getGamepads()[e.gamepad.index];
             this._gamepadIndex = gp.index;
-            console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.", gp.index, gp.id, gp.buttons.length, gp.axes.length);
+            this.getLogger().info("Gamepad connected at index %d: %s. %d buttons, %d axes.", gp.index, gp.id, gp.buttons.length, gp.axes.length);
         });
         window.addEventListener("gamepaddisconnected", (e) => {
             this._gamepadIndex = -1;
-            console.log("Contrôleur n°%d déconnecté : %s", e.gamepad.index, e.gamepad.id);
+            this.getLogger().info("Contrôleur n°%d déconnecté : %s", e.gamepad.index, e.gamepad.id);
         });
     }
 
