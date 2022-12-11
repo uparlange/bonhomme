@@ -10,7 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "pixi-plugin-bump": "^1.1.8",
     "pixi-sound": "^3.0.3",
     "pixi.js": "^5.1.5"
